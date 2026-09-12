@@ -1,0 +1,166 @@
+\documentclass[11pt]{article}
+
+% ===================== PAQUETES =====================
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+% ===================== COLORES =====================
+\definecolor{primario}{RGB}{27,79,114}
+\definecolor{secundario}{RGB}{46,139,87}
+
+% ===================== ESTILO DE SECCIONES =====================
+\titleformat{\section}
+  {\Large\bfseries\color{primario}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{secundario}}{\thesubsection}{1em}{}
+
+% ===================== ENCABEZADO/PIE =====================
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small Análisis de Energías Renovables y CO\textsubscript{2} en Colombia}
+\fancyhead[R]{\small README}
+\fancyfoot[C]{\small\thepage}
+
+% ===================== ENLACES =====================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primario,
+    urlcolor=primario,
+    citecolor=primario
+}
+
+\begin{document}
+
+% ===================== PORTADA =====================
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries\color{primario} Análisis de la Relación entre las Energías Renovables y las Emisiones de CO\textsubscript{2} en Colombia (1990--2021)\par}
+    \vspace{1.5cm}
+    {\Large Proyecto Final -- Ciencia de Datos\par}
+    \vspace{2cm}
+    {\large\bfseries Integrantes\par}
+    \vspace{0.3cm}
+    {\large
+    Juan Castillo \\
+    Maira Martínez \\
+    Jorge Bernal \\
+    Samuel Solano \par}
+    \vspace{2cm}
+    {\large Docente: Camila Silva Gómez\par}
+    \vspace{0.3cm}
+    {\large Universidad EAN\par}
+    \vspace{0.3cm}
+    {\large Bogotá, Colombia \par}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+% ===================== 1. DESCRIPCIÓN DEL PROYECTO =====================
+\section{Descripción del Proyecto}
+
+Este repositorio contiene el desarrollo completo del proyecto final del curso de Ciencia de Datos, cuyo objetivo es analizar la evolución de las emisiones de dióxido de carbono (CO\textsubscript{2}) en Colombia entre 1990 y 2021, en relación con el crecimiento de la generación de energía eléctrica a partir de fuentes renovables.
+
+\subsection*{Pregunta de investigación}
+\textit{¿Qué relación existe entre el crecimiento de las energías renovables y las emisiones de CO\textsubscript{2} en Colombia entre 1990 y 2021?}
+
+\subsection*{Objetivo}
+Determinar el tipo y la magnitud de la relación entre la participación de energías renovables en la matriz eléctrica y las emisiones de CO\textsubscript{2} per cápita en Colombia, a partir de un análisis estadístico y de modelos de aprendizaje automático (\textit{machine learning}) aplicados a series de tiempo del periodo 1990--2021.
+
+% ===================== 2. FUENTE DE LOS DATOS =====================
+\section{Fuente de los Datos}
+
+La información utilizada proviene de dos conjuntos de datos públicos publicados por \textbf{Our World in Data (OWID)}, alojados en su repositorio oficial de GitHub:
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{CO2 and Greenhouse Gas Emissions Dataset}: \url{https://github.com/owid/co2-data}
+    \item \textbf{Energy Dataset}: \url{https://github.com/owid/energy-data}
+\end{itemize}
+
+Se seleccionaron estas fuentes por tratarse de bases de datos abiertas, actualizadas periódicamente y ampliamente utilizadas en investigación académica sobre energía y cambio climático, lo que garantiza trazabilidad y confiabilidad de la información.
+
+De ambos conjuntos se extrajeron únicamente los registros correspondientes a \textbf{Colombia} en el rango de años \textbf{1990--2021}.
+
+% ===================== 3. VARIABLES =====================
+\section{Descripción de las Variables}
+
+Tras el proceso de limpieza, la tabla analítica final (\texttt{df\_clean}) quedó conformada por las siguientes variables:
+
+\begin{center}
+\begin{tabular}{@{}p{3.3cm}p{9.5cm}@{}}
+\toprule
+\textbf{Variable} & \textbf{Descripción} \\
+\midrule
+\texttt{Year} & Año de observación (1990--2021). \\
+\texttt{CO2\_Mt} & Emisiones totales de CO\textsubscript{2} de Colombia, en millones de toneladas (Mt). \\
+\texttt{CO2\_per\_capita} & Emisiones de CO\textsubscript{2} por habitante, en toneladas por persona. \\
+\texttt{Renewables\_pct} & Porcentaje de electricidad generada a partir de fuentes renovables. \\
+\texttt{Energy\_per\_capita} & Consumo de energía primaria por habitante. \\
+\texttt{population} & Población total de Colombia para el año correspondiente. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ===================== 4. LIMPIEZA Y PREPROCESAMIENTO =====================
+\section{Proceso de Limpieza y Preprocesamiento de Datos}
+
+El tratamiento de los datos se realizó en Python (pandas) siguiendo los pasos que se describen a continuación:
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{Carga de datos:} lectura directa de los archivos \texttt{owid-co2-data.csv} y \texttt{owid-energy-data.csv} desde el repositorio oficial de OWID en GitHub.
+    \item \textbf{Filtrado:} de cada dataset se conservaron únicamente los registros donde \texttt{country == "Colombia"} y el año estuviera entre 1990 y 2021.
+    \item \textbf{Selección y renombrado de columnas:} se conservaron las variables relevantes de cada fuente:
+    \begin{itemize}
+        \item Del dataset de CO\textsubscript{2}: \texttt{year}, \texttt{co2} (renombrada a \texttt{CO2\_Mt}) y \texttt{population}.
+        \item Del dataset de energía: \texttt{year}, \texttt{renewables\_share\_elec} (renombrada a \texttt{Renewables\_pct}) y \texttt{primary\_energy\_consumption} (renombrada a \texttt{Energy\_TWh}).
+    \end{itemize}
+    \item \textbf{Unión de tablas:} los dos subconjuntos se combinaron mediante un \textit{merge} por la columna \texttt{year}, generando una única tabla (\texttt{df\_colombia}) con todas las variables alineadas por año.
+    \item \textbf{Cálculo de variables per cápita:} a partir de las variables absolutas y la población, se calcularon \texttt{CO2\_per\_capita} y \texttt{Energy\_per\_capita}, para permitir comparaciones normalizadas por habitante.
+    \item \textbf{Estandarización de nombres:} la columna \texttt{year} se renombró a \texttt{Year} para mantener consistencia en el resto del análisis.
+    \item \textbf{Consolidación final:} se construyó la tabla analítica \texttt{df\_clean}, con las seis variables finales listas para el análisis exploratorio, estadístico y de modelado.
+    \item \textbf{Exportación:} la base limpia se exportó a un archivo Excel (\texttt{datos\_limpios\_colombia\_1990\_2021.xlsx}) para su respaldo y consulta.
+\end{enumerate}
+
+No se identificaron valores nulos ni duplicados en el rango seleccionado, dado que ambos datasets de OWID cuentan con series completas para Colombia en el periodo de estudio.
+
+% ===================== 5. ESTRUCTURA DEL REPOSITORIO =====================
+\section{Estructura del Repositorio}
+
+\begin{verbatim}
+├── README.tex / README.pdf     Este documento
+├── Informe_Final.pdf           Informe completo del proyecto
+├── Presentacion.pdf            Diapositivas de la sustentación
+└── Notebook_Colab.ipynb        Cuaderno de Google Colab con el código completo
+\end{verbatim}
+
+% ===================== 6. EJECUCIÓN DEL CÓDIGO =====================
+\section{Instrucciones para Ejecutar el Código}
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Abrir el archivo \texttt{Notebook\_Colab.ipynb} en \href{https://colab.research.google.com/}{Google Colab}.
+    \item Ejecutar la celda de código de manera secuencial (\textit{Entorno de ejecución} $\rightarrow$ \textit{Ejecutar todas}).
+    \item El cuaderno instala/importa automáticamente las librerías necesarias (\texttt{pandas}, \texttt{numpy}, \texttt{matplotlib}, \texttt{seaborn}, \texttt{scikit-learn}).
+    \item Los datos se descargan automáticamente desde los repositorios de GitHub de OWID, por lo que no se requieren archivos locales adicionales.
+    \item Al finalizar la ejecución, se generará y descargará el archivo \texttt{datos\_limpios\_colombia\_1990\_2021.xlsx} con la base de datos ya procesada.
+\end{enumerate}
+
+% ===================== 7. REFERENCIAS =====================
+\section{Referencias}
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item[] Ritchie, H., Rosado, P., \& Roser, M. (2023). \textit{CO\textsubscript{2} and Greenhouse Gas Emissions} [Conjunto de datos]. Our World in Data. \url{https://github.com/owid/co2-data}
+    \item[] Ritchie, H., Rosado, P., \& Roser, M. (2023). \textit{Energy} [Conjunto de datos]. Our World in Data. \url{https://github.com/owid/energy-data}
+\end{enumerate}
+
+\end{document}
